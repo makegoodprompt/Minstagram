@@ -5,8 +5,10 @@ description = "Simple instagram clone project to learn FastAPI concepts fast"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "aiosqlite>=0.22.1",
     "fastapi>=0.131.0",
     "fastapi-users[sqlalchemy]>=15.0.4",
     "imagekitio>=5.2.0",
     "python-dotenv>=1.2.1",
+    "uvicorn[standard]>=0.41.0",
 ]
