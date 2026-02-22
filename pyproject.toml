@@ -1,0 +1,7 @@
+[project]
+name = "minstagram"
+version = "0.1.0"
+description = "Simple instagram clone project to learn FastAPI concepts fast"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
