@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from app.schemas import CreatePost, PostResponse
+from app.db import Post, create_database, get_async_session
+from sqlalchemy.ext.asyncio import AsyncSession
 app = FastAPI()
 
 text_posts = {
