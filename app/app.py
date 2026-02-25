@@ -4,6 +4,13 @@ from app.db import Post, create_database, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
 from sqlalchemy import select
+from app.images import imagekit
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+import shutil
+import os
+import uuid
+import tempfile
+
 
 
 @asynccontextmanager
@@ -20,16 +27,43 @@ async def upload(
         caption: str = Form(""),
         session: AsyncSession = Depends(get_async_session)
 ):
-    post = Post(
-        caption=caption,
-        url="some url",
-        file_type="Photo",
-        file_name="some file name",
-    )
-    session.add(post)
-    await session.commit()
-    await session.refresh(post)
-    return post
+
+    temp_file_path = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp_file:
+            temp_file_path = temp_file.name
+            shutil.copyfileobj(file.file, temp_file)
+
+        upload_result = imagekit.upload_file(
+            file = open(temp_file_path, "rb"),
+            filename = file.filename,
+            options = UploadFileRequestOptions(
+                use_unique_filename = True,
+                tags = ["backend-upload"]
+            )
+        )
+
+        if upload_result.response.http_response.status_code == 200:
+            post = Post(
+                caption=caption,
+                url="some url",
+                file_type="Photo",
+                file_name="some file name",
+            )
+            session.add(post)
+            await session.commit()
+            await session.refresh(post)
+            return post
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+        file.file.close()
+
+
+
+
 
 @app.get("/feed")
 async def get_feed(
